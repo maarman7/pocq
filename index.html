@@ -3,28 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
+    <title>Goods Issue and Goods Return Chatbot</title>
     <style>
+        /* Style the container for the camera preview */
+        #camera-container {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 350px; /* Set the desired width for the camera box */
+            height: 250px; /* Set the desired height for the camera box */
+            border: 2px solid #b32525;
+            background-color: #fff;
+            z-index: 1000;
+            display: none; /* Initially hidden */
+        }
+
         #output {
             margin-top: 20px;
             font-size: 1.2em;
             display: none;
         }
+
+        /* Style Web Chat to be aligned at the bottom */
+        .webchat-container {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .webchat-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
-    <h1>QR Code Scanner Bot</h1>
+    <h1>Goods Issue and Goods Return Chatbot</h1>
     <p id="output"></p>
-    
+
+    <!-- Container for the camera -->
+    <div id="camera-container">
+        <video id="camera-preview"></video>
+    </div>
 
     <!-- Include jsQR library for QR code scanning -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr"></script>
     <!-- Include Bot Framework Web Chat -->
     <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
 
+    <div class="webchat-container">
+        <!-- Web Chat will be rendered here -->
+    </div>
+
     <script>
         let video = null;
         const output = document.getElementById('output');
+        const cameraContainer = document.getElementById('camera-container');
 
         // DirectLine token (replace with your token)
         const directLineToken = 'J8g2R3DM6Tk.S2qVgJwLGWMyxcAkFM7GA7aewrXFk2eGrLvpfPKG5lw';
@@ -32,7 +68,11 @@
         // Initialize Web Chat with Direct Line
         const styleOptions = {
             botAvatarInitials: 'Bot',
-            userAvatarInitials: 'You'
+            userAvatarInitials: 'You',
+            bubbleBackground: '#00BFFF', // Bot message background color
+            bubbleFromUserBackground: '#00BFFF', // User message background color
+            bubbleTextColor: 'white', // Text color for bot messages
+            bubbleFromUserTextColor: 'white', // Text color for user messages
         };
 
         const directLine = window.WebChat.createDirectLine({ token: directLineToken });
@@ -42,17 +82,18 @@
                 directLine,
                 styleOptions
             },
-            document.body.appendChild(document.createElement('div'))
+            document.querySelector('.webchat-container')
         );
 
         // Use the device camera to scan the QR code
         async function startCamera() {
             try {
-                video = document.createElement('video');
+                video = document.getElementById('camera-preview');
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
                 video.setAttribute('playsinline', true); // required to tell iOS Safari we don't want fullscreen
                 video.play();
+                cameraContainer.style.display = 'block'; // Show the camera container
                 requestAnimationFrame(tick);
             } catch (err) {
                 console.error('Error accessing camera:', err);
@@ -83,13 +124,14 @@
             }
         }
 
-        // Stop the camera
+        // Stop the camera and hide the camera container
         function stopCamera() {
             const stream = video.srcObject;
             const tracks = stream.getTracks();
             tracks.forEach(track => track.stop());
             video.srcObject = null;
             video = null;
+            cameraContainer.style.display = 'none'; // Hide the camera container
         }
 
         // Send scanned data to the bot
@@ -115,3 +157,4 @@
     
 </body>
 </html>
+
